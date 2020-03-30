@@ -125,9 +125,23 @@ def createApp():
         'Select the Telegram Name',
         telegramName)
 
-    st.write('You selected: ', option)
     df = maketlgvaluelist(root, option, log_filename)
-    st.write(df)
+    if not type(df) is str:
+        st.dataframe(df)
+        # Select Columns
+        if st.checkbox("Select Columns To Show"):
+            all_columns = df.columns.tolist()
+            selected_columns = st.multiselect("Select", all_columns)
+            new_df = df[selected_columns]
+            st.dataframe(new_df)
+
+        # Show Summary
+        if st.checkbox("Summary"):
+            st.write(df.describe().T)
+    else:
+        st.write(df)
+
+
 
 
 if __name__ == "__main__":
