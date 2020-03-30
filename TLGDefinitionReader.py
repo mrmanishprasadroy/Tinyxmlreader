@@ -55,6 +55,13 @@ def CreateTlgHeader(root, tlgname):
 
 
 def maketlgvaluelist(root, sTag, filename):
+    '''
+    File Processing for extracting the values from Loag file
+    :param root: tree.getroot(
+    :param sTag: Telegram Name
+    :param filename: Logfile name for analysis
+    :return: Pandas Dataframe
+    '''
     tlgDict = {}
     tValues = []
     elementList = CreateTlgHeader(root, sTag)
@@ -82,12 +89,15 @@ def maketlgvaluelist(root, sTag, filename):
 
 
 def createApp():
-    ''' Common Telegram Data Exproler'''
+    '''
+        Streamlit App componet start form here
+        url: https://docs.streamlit.io/
+    '''
     html_temp = '''
-    <div style="background-color:tomato;">
-    <p style="color:white;font-size:30px;padding:10px">Common Telegram DataSet Explorer</p>
-    <p>Place the Tlg file and xml file at the Data and xml folder respectively  of app to extract data</p>
-    </div>
+        <div style="background-color:tomato;">
+        <p style="color:white;font-size:30px;padding:10px">Common Telegram DataSet Explorer</p>
+        <p>Place the Tlg file and xml file at the Data and xml folder respectively  of app to extract data</p>
+        </div>
     '''
     st.markdown(html_temp, unsafe_allow_html=True)
 
