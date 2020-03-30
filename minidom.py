@@ -1,24 +1,16 @@
-from xml.dom import minidom
+import dash
+import dash_table
+import pandas as pd
 
-xmldoc = minidom.parse("Telcom_Out.xml")
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 
-telegram = xmldoc.getElementsByTagName("telegram")
-print(telegram[1].secondChild)
-tlgList = []
+app = dash.Dash(__name__)
 
-def getTlgList():
-    for tlg in telegram:
-        tlgList.append(tlg.attributes['name'].value)
-        print(tlg.firstchi)
-    return tlgList
+app.layout = dash_table.DataTable(
+    id='table',
+    columns=[{"name": i, "id": i} for i in df.columns],
+    data=df.to_dict('records'),
+)
 
-
-def getTlgElement(tlgName):
-    pass
-
-
-
-if __name__ == "__main__":
-    print(getTlgList)
-    #tlgName = getTlgList[1]
-    #getTlgElement(tlgName)
+if __name__ == '__main__':
+    app.run_server(debug=True)
