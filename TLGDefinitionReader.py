@@ -188,14 +188,13 @@ def createApp():
 
         st.subheader("Customizable Plot")
         all_columns_names = df.columns.tolist()
-       # type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
+        # type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
         selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
-        type_of_plot =  "Plotly"
+        type_of_plot = "Plotly"
         if st.button("Generate Plot"):
             st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
             if type_of_plot == 'MatPlot':
                 # create plot
-                fig, ax = plt.subplots()
                 bar_width = 0.35
                 opacity = 0.8
                 for col in selected_columns_names:
@@ -237,7 +236,7 @@ def createApp():
                     legend={'x': 0, 'y': 1},
                     hovermode='closest'
 
-                    )
+                )
 
                 # Plot and embed
                 fig = dict(data=data, layout=layout)
