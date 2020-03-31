@@ -276,6 +276,7 @@ def createApp():
     else:
         st.write(df)
 
+
 def debug():
     """
     for Debugging the software
@@ -284,10 +285,9 @@ def debug():
     tree = ET.parse("Telcom_In.xml")
     root = tree.getroot()
 
-    df = maketlgvaluelist(root, 'SCL205','SCL1_TlgReceiver.log')
+    df = maketlgvaluelist(root, 'SCL205', 'SCL1_TlgReceiver.log')
     print(df)
 
 
 if __name__ == "__main__":
     createApp()
-
