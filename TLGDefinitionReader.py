@@ -36,7 +36,7 @@ def CreateTlgHeader(root, tlgname):
         count = att.get('count')
         counter = int(count)
         if counter > 1:
-            if re.search('Time', att.get('name'), re.IGNORECASE):
+            if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
                 elementList.append(att.get('name'))
             else:
                 for idx in range(1, counter + 1):
@@ -67,12 +67,13 @@ def maketlgvaluelist(root, sTag, filename):
     """
     tValues = []
     elementList = CreateTlgHeader(root, sTag)
-    regex = 'TYPE;' + sTag + ';SENDER;DH_L3_OUT;BODY;'
+    regex = 'TYPE;' + sTag + ';'
     with open(filename, "r") as file:
         for line in file:
             if re.search(regex, line, re.IGNORECASE) is not None:
                 cLine = line.replace(regex, '')
                 datetime = cLine[:23]
+                #sub_index = line.rfind('BODY;')
                 tlgValues = cLine.replace(cLine[:30], "")
                 values = tlgValues.split('|')
                 values.insert(0, datetime)
