@@ -1,16 +1,19 @@
+import os
 import re
 import xml.etree.ElementTree as ET
-import streamlit as st
+
 import pandas as pd
-import os
+# Data Viz Pkgs
+import plotly.graph_objects as go
+import streamlit as st
 
 
 def GetTlgList(root):
-    '''
+    """
     Extract the Telegrams from the XML file
     :param root: tree.getroot()
     :return: telegram list
-    '''
+    """
     TlgName = []
     for c in root.findall('telegram'):
         att = c.attrib
@@ -32,8 +35,8 @@ def CreateTlgHeader(root, tlgname):
         att = item.attrib
         count = att.get('count')
         counter = int(count)
-        if (counter > 1):
-            if (re.search('Time', att.get('name'), re.IGNORECASE)):
+        if counter > 1:
+            if re.search('Time', att.get('name'), re.IGNORECASE):
                 elementList.append(att.get('name'))
             else:
                 for idx in range(1, counter + 1):
@@ -42,7 +45,7 @@ def CreateTlgHeader(root, tlgname):
         else:
             elementList.append(att.get('name'))
 
-    if (elementList.__contains__('Header')):
+    if elementList.__contains__('Header'):
         elementList.remove('Header')
         elementList.insert(0, 'DateTime')
         elementList.insert(1, 'MessageLength')
@@ -55,20 +58,19 @@ def CreateTlgHeader(root, tlgname):
 
 
 def maketlgvaluelist(root, sTag, filename):
-    '''
+    """
     File Processing for extracting the values from Loag file
     :param root: tree.getroot(
     :param sTag: Telegram Name
     :param filename: Logfile name for analysis
     :return: Pandas Dataframe
-    '''
-    tlgDict = {}
+    """
     tValues = []
     elementList = CreateTlgHeader(root, sTag)
     regex = 'TYPE;' + sTag + ';SENDER;DH_L3_OUT;BODY;'
     with open(filename, "r") as file:
         for line in file:
-            if re.search(regex, line, re.IGNORECASE) != None:
+            if re.search(regex, line, re.IGNORECASE) is not None:
                 cLine = line.replace(regex, '')
                 datetime = cLine[:23]
                 tlgValues = cLine.replace(cLine[:30], "")
@@ -78,21 +80,18 @@ def maketlgvaluelist(root, sTag, filename):
                 tValues.append(tlgDict)
         file.close()
 
-    if (len(tValues) > 0):
+    if len(tValues) > 0:
         df = pd.DataFrame(tValues)
-        df['DateTime'] = df['DateTime'].astype('datetime64[s]')
-        df.set_index(df['DateTime'], inplace=True)
-        del df['DateTime']
         return df
     else:
         return 'No Data Found'
 
 
 def createApp():
-    '''
+    """
         Streamlit App componet start form here
         url: https://docs.streamlit.io/
-    '''
+    """
     html_temp = '''
         <div style="background-color:tomato;">
         <p style="color:white;font-size:30px;padding:10px">Common Telegram DataSet Explorer</p>
@@ -119,7 +118,6 @@ def createApp():
     log_filename = file_selector()
     st.sidebar.info("You Selected {}".format(log_filename))
 
-
     telegramName = GetTlgList(root)
     option = st.selectbox(
         'Select the Telegram Name',
@@ -138,10 +136,79 @@ def createApp():
         # Show Summary
         if st.checkbox("Summary"):
             st.write(df.describe().T)
+
+        # Data Visualization for the datafile
+        st.subheader("Data Visualization")
+
+        # Customizable Plot
+
+        st.subheader("Customizable Plot")
+        all_columns_names = df.columns.tolist()
+        type_of_plot = st.selectbox("Select Type of Plot", ["area", "bar", "line"])
+        selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
+
+        if st.button("Generate Plot"):
+            st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
+
+            # Plot By Streamlit
+            if type_of_plot == 'area':
+                crust_data = df[selected_columns_names]
+                st.area_chart(crust_data)
+
+            elif type_of_plot == 'bar':
+                crust_data = df[selected_columns_names]
+                st.bar_chart(crust_data)
+
+            elif type_of_plot == 'line':
+                trace0 = []
+                for item in selected_columns_names:
+                    # Create and style traces
+                    trace0.append(go.Scatter(
+                        x=df['DateTime'],
+                        y=df[item],
+                        name=item,
+                        text=df[item],
+                        line=dict(
+                            # color=('rgb(205, 12, 24)'),
+                            dash='solid',
+                            width=2)
+                    ))
+                traces = [trace0]
+                data = [val for sublist in traces for val in sublist]
+
+                layout = go.Layout(
+                    xaxis=dict(
+
+                        zeroline=True,
+                        showline=True,
+                        mirror='ticks',
+                        gridcolor='#bdbdbd',
+                        gridwidth=2,
+                        zerolinecolor='#969696',
+                        zerolinewidth=4,
+                        linecolor='#636363',
+                        linewidth=6
+                    ),
+                    yaxis=dict(
+
+                        zeroline=True,
+                        showline=True,
+                        mirror='ticks',
+                        gridcolor='#bdbdbd',
+                        gridwidth=2,
+                        zerolinecolor='#969696',
+                        zerolinewidth=4,
+                        linecolor='#636363',
+                        linewidth=6
+                    )
+                )
+
+                # Plot and embed
+                fig = dict(data=data, layout=layout)
+                st.plotly_chart(fig, use_container_width=True)
+
     else:
         st.write(df)
-
-
 
 
 if __name__ == "__main__":
