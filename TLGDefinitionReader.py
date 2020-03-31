@@ -1,9 +1,42 @@
+#
+# TlgDefinitinReader
+# $Id: TLGDefinitionReader.py  2020-03-31 ROYM $
+# use of streamlit app
+# use of ElementTree
+# use of Plotly
+# history:
+# 2020-03-31 vl   created
+#
+# manish.roy@sms-group.com
+#
+# --------------------------------------------------------------------
+"""
+Copyright (c) 2020 manish.roy@sms-group.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+"""
+
 import os
 import re
 import xml.etree.ElementTree as ET
-
 import pandas as pd
-# Data Viz Pkgs
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -63,7 +96,7 @@ def maketlgvaluelist(root, sTag, filename):
     :param root: tree.getroot(
     :param sTag: Telegram Name
     :param filename: Logfile name for analysis
-    :return: Pandas Dataframe
+    :return: Pandas Data frame
     """
     tValues = []
     elementList = CreateTlgHeader(root, sTag)
@@ -74,7 +107,7 @@ def maketlgvaluelist(root, sTag, filename):
                 cLine = line.replace(regex, '')
                 datetime = cLine[:23]
                 sub_index = cLine.find('BODY')
-                tlgValues = cLine.replace(cLine[:sub_index+5], "")
+                tlgValues = cLine.replace(cLine[:sub_index + 5], "")
                 values = tlgValues.split('|')
                 values.insert(0, datetime)
                 tlgDict = dict(zip(elementList, values))
@@ -243,11 +276,18 @@ def createApp():
     else:
         st.write(df)
 
+def debug():
+    """
+    for Debugging the software
+    :return: void
+    """
+    tree = ET.parse("Telcom_In.xml")
+    root = tree.getroot()
+
+    df = maketlgvaluelist(root, 'SCL205','SCL1_TlgReceiver.log')
+    print(df)
+
 
 if __name__ == "__main__":
     createApp()
-     #tree = ET.parse("Telcom_In.xml")
-     #root = tree.getroot()
 
-     #df = maketlgvaluelist(root, 'SCL205','SCL1_TlgReceiver.log')
-     #print(df)
