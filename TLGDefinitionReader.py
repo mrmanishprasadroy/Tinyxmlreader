@@ -133,10 +133,18 @@ def createApp():
             new_df = df[selected_columns]
             st.dataframe(new_df.style.highlight_max(axis=0))
 
-        # Show Summary
-        if st.checkbox("Summary"):
-            st.write(df.describe().T)
-
+        # Build Panda Query string
+        if st.checkbox("Search Dataset"):
+            hint = '''
+                    <p>Query Pandas DataFrame with Condition on Single Column line >, < , for equal use == 
+                        Query Pandas DataFrame with Condition on Multiple Columns using AND operator
+                        Query Pandas DataFrame with Condition on Multiple Columns using OR operator</p>
+            '''
+            st.markdown(hint, unsafe_allow_html=True)
+            query = st.text_input('Write query in String style', value="")
+            if len(query) > 0:
+                new_df = df.query(query)
+                st.write(new_df)
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
