@@ -73,8 +73,8 @@ def maketlgvaluelist(root, sTag, filename):
             if re.search(regex, line, re.IGNORECASE) is not None:
                 cLine = line.replace(regex, '')
                 datetime = cLine[:23]
-                #sub_index = line.rfind('BODY;')
-                tlgValues = cLine.replace(cLine[:30], "")
+                sub_index = cLine.find('BODY')
+                tlgValues = cLine.replace(cLine[:sub_index+5], "")
                 values = tlgValues.split('|')
                 values.insert(0, datetime)
                 tlgDict = dict(zip(elementList, values))
@@ -246,8 +246,8 @@ def createApp():
 
 if __name__ == "__main__":
     createApp()
-# tree = ET.parse("Telcom_Out.xml")
-# root = tree.getroot()
+     #tree = ET.parse("Telcom_In.xml")
+     #root = tree.getroot()
 
-# df = maketlgvaluelist(root, 'LF_HEAT_REPORT')
-# print(df)
+     #df = maketlgvaluelist(root, 'SCL205','SCL1_TlgReceiver.log')
+     #print(df)
