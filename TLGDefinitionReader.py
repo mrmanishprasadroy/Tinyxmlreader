@@ -36,6 +36,8 @@ SOFTWARE.
 import os
 import re
 import xml.etree.ElementTree as ET
+
+import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -186,51 +188,33 @@ def createApp():
 
         st.subheader("Customizable Plot")
         all_columns_names = df.columns.tolist()
-        type_of_plot = st.selectbox("Select Type of Plot", ["area", "bar", "line"])
+        type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
         selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
 
         if st.button("Generate Plot"):
             st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
-
-            # using Plot's graphs
-            if type_of_plot == 'area':
-                res = []
+            if type_of_plot == 'MatPlot':
+                # create plot
+                fig, ax = plt.subplots()
+                bar_width = 0.35
+                opacity = 0.8
                 for col in selected_columns_names:
-                    res.append(
-                        go.Scatter(
-                            x=df.index.values.tolist(),
-                            y=df[col].values.tolist(),
-                            name=col
-                        )
-                    )
+                    plt.plot(df.index.values.tolist(), df[col].to_list(), bar_width,
+                             alpha=opacity,
+                             label=col)
 
-                fig = go.Figure(data=res)
-                st.plotly_chart(fig, use_container_width=True)
+                plt.xlabel('Index')
+                plt.legend()
 
-            elif type_of_plot == 'bar':
-                res = []
-                for col in selected_columns_names:
-                    res.append(
-                        go.Bar(
-                            x=df.index.values.tolist(),
-                            y=df[col].values.tolist(),
-                            name=col
-                        )
-                    )
+                plt.tight_layout()
+                st.pyplot()
 
-                layout = go.Layout(
-                    barmode='group'
-                )
-
-                fig = go.Figure(data=res, layout=layout)
-                st.plotly_chart(fig, use_container_width=True)
-
-            elif type_of_plot == 'line':
+            elif type_of_plot == 'Plotly':
                 trace0 = []
                 for item in selected_columns_names:
                     # Create and style traces
                     trace0.append(go.Scatter(
-                        x=df['DateTime'],
+                        x=df.index.values.tolist(),
                         y=df[item],
                         name=item,
                         text=df[item],
