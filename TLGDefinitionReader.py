@@ -125,13 +125,13 @@ def createApp():
 
     df = maketlgvaluelist(root, option, log_filename)
     if not type(df) is str:
-        st.dataframe(df)
+        st.dataframe(df.style.highlight_max(axis=0))
         # Select Columns
         if st.checkbox("Select Columns To Show"):
             all_columns = df.columns.tolist()
             selected_columns = st.multiselect("Select", all_columns)
             new_df = df[selected_columns]
-            st.dataframe(new_df)
+            st.dataframe(new_df.style.highlight_max(axis=0))
 
         # Show Summary
         if st.checkbox("Summary"):
@@ -150,14 +150,38 @@ def createApp():
         if st.button("Generate Plot"):
             st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
 
-            # Plot By Streamlit
+            # using Plot's graphs
             if type_of_plot == 'area':
-                crust_data = df[selected_columns_names]
-                st.area_chart(crust_data)
+                res = []
+                for col in selected_columns_names:
+                    res.append(
+                        go.Scatter(
+                            x=df.index.values.tolist(),
+                            y=df[col].values.tolist(),
+                            name=col
+                        )
+                    )
+
+                fig = go.Figure(data=res)
+                st.plotly_chart(fig, use_container_width=True)
 
             elif type_of_plot == 'bar':
-                crust_data = df[selected_columns_names]
-                st.bar_chart(crust_data)
+                res = []
+                for col in selected_columns_names:
+                    res.append(
+                        go.Bar(
+                            x=df.index.values.tolist(),
+                            y=df[col].values.tolist(),
+                            name=col
+                        )
+                    )
+
+                layout = go.Layout(
+                    barmode='group'
+                )
+
+                fig = go.Figure(data=res, layout=layout)
+                st.plotly_chart(fig, use_container_width=True)
 
             elif type_of_plot == 'line':
                 trace0 = []
