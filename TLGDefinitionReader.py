@@ -188,9 +188,9 @@ def createApp():
 
         st.subheader("Customizable Plot")
         all_columns_names = df.columns.tolist()
-        type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
+       # type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
         selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
-
+        type_of_plot =  "Plotly"
         if st.button("Generate Plot"):
             st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
             if type_of_plot == 'MatPlot':
@@ -214,7 +214,7 @@ def createApp():
                 for item in selected_columns_names:
                     # Create and style traces
                     trace0.append(go.Scatter(
-                        x=df.index.values.tolist(),
+                        x=df['DateTime'].to_list(),
                         y=df[item],
                         name=item,
                         text=df[item],
@@ -227,31 +227,17 @@ def createApp():
                 data = [val for sublist in traces for val in sublist]
 
                 layout = go.Layout(
-                    xaxis=dict(
+                    xaxis={"title": "Date Time",
+                           'rangeselector': {'buttons': list([
+                               {'count': 1, 'label': '1M', 'step': 'day', 'stepmode': 'backward'},
+                               {'count': 10, 'label': '6M', 'step': 'month', 'stepmode': 'backward'},
+                               {'step': 'all'}
+                           ])}, 'rangeslider': {'visible': True}, 'type': 'date'},
+                    margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+                    legend={'x': 0, 'y': 1},
+                    hovermode='closest'
 
-                        zeroline=True,
-                        showline=True,
-                        mirror='ticks',
-                        gridcolor='#bdbdbd',
-                        gridwidth=2,
-                        zerolinecolor='#969696',
-                        zerolinewidth=4,
-                        linecolor='#636363',
-                        linewidth=6
-                    ),
-                    yaxis=dict(
-
-                        zeroline=True,
-                        showline=True,
-                        mirror='ticks',
-                        gridcolor='#bdbdbd',
-                        gridwidth=2,
-                        zerolinecolor='#969696',
-                        zerolinewidth=4,
-                        linecolor='#636363',
-                        linewidth=6
                     )
-                )
 
                 # Plot and embed
                 fig = dict(data=data, layout=layout)
