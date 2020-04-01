@@ -43,84 +43,89 @@ import plotly.graph_objects as go
 import streamlit as st
 
 
-def GetTlgList(root):
-    """
-    Extract the Telegrams from the XML file
-    :param root: tree.getroot()
-    :return: telegram list
-    """
-    TlgName = []
-    for c in root.findall('telegram'):
-        att = c.attrib
-        TlgName.append(att.get('name'))
-    return TlgName
+class Tinyxmlreader:
 
+    def __init__(self, filename):
+        self.filename = filename
+        self.tree = ET.parse(filename)
+        self.root = self.tree.getroot()
 
-def CreateTlgHeader(root, tlgname):
-    """
-    Extract the Record or Element of the telegram from the XML file
-    :param root: tree.getroot()
-    :param tlgname: telegram name
-    :return: telegram element list
-    """
-    elementList = []
-    Xstring = "./telegram[@name ='" + tlgname + "']/record/element"
-    for item in root.findall(Xstring):
-        # iterate child elements of item
-        att = item.attrib
-        count = att.get('count')
-        counter = int(count)
-        if counter > 1:
-            if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
-                elementList.append(att.get('name'))
+    def __repr__(self):
+        return f'Tinyxmlreader({self.root!r})'
+
+    def GetTlgList(self):
+        """
+        Extract the Telegrams from the XML file
+        :return: telegram list
+        """
+        TlgName = []
+        for c in self.root.findall('telegram'):
+            att = c.attrib
+            TlgName.append(att.get('name'))
+        return TlgName
+
+    def CreateTlgHeader(self, tlgname):
+        """
+        Extract the Record or Element of the telegram from the XML file
+        :param tlgname: telegram name
+        :return: telegram element list
+        """
+        elementList = []
+        Xstring = "./telegram[@name ='" + tlgname + "']/record/element"
+        for item in self.root.findall(Xstring):
+            # iterate child elements of item
+            att = item.attrib
+            count = att.get('count')
+            counter = int(count)
+            if counter > 1:
+                if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
+                    elementList.append(att.get('name'))
+                else:
+                    for idx in range(1, counter + 1):
+                        elem = att.get('name') + "_" + str(idx)
+                        elementList.append(elem)
             else:
-                for idx in range(1, counter + 1):
-                    elem = att.get('name') + "_" + str(idx)
-                    elementList.append(elem)
+                elementList.append(att.get('name'))
+
+        if elementList.__contains__('Header'):
+            elementList.remove('Header')
+            elementList.insert(0, 'DateTime')
+            elementList.insert(1, 'MessageLength')
+            elementList.insert(2, 'MessageId')
+            elementList.insert(3, 'MessageCount')
+            elementList.insert(4, 'UnitNo')
         else:
-            elementList.append(att.get('name'))
+            elementList.insert(0, 'DateTime')
+        return elementList
 
-    if elementList.__contains__('Header'):
-        elementList.remove('Header')
-        elementList.insert(0, 'DateTime')
-        elementList.insert(1, 'MessageLength')
-        elementList.insert(2, 'MessageId')
-        elementList.insert(3, 'MessageCount')
-        elementList.insert(4, 'UnitNo')
-    else:
-        elementList.insert(0, 'DateTime')
-    return elementList
+    def maketlgvaluelist(self, sTag, filename):
+        """
+        File Processing for extracting the values from Loag file
+        :param sTag: Telegram Name
+        :param filename: Logfile name for analysis
+        :return: Pandas Data frame
+        """
+        tValues = []
+        elementList = self.CreateTlgHeader(sTag)
+        regex = 'TYPE;' + sTag + ';'
+        with open(filename, "r") as file:
+            for line in file:
+                if re.search(regex, line, re.IGNORECASE) is not None:
+                    cLine = line.replace(regex, '')
+                    datetime = cLine[:23]
+                    sub_index = cLine.find('BODY')
+                    tlgValues = cLine.replace(cLine[:sub_index + 5], "")
+                    values = tlgValues.split('|')
+                    values.insert(0, datetime)
+                    tlgDict = dict(zip(elementList, values))
+                    tValues.append(tlgDict)
+            file.close()
 
-
-def maketlgvaluelist(root, sTag, filename):
-    """
-    File Processing for extracting the values from Loag file
-    :param root: tree.getroot(
-    :param sTag: Telegram Name
-    :param filename: Logfile name for analysis
-    :return: Pandas Data frame
-    """
-    tValues = []
-    elementList = CreateTlgHeader(root, sTag)
-    regex = 'TYPE;' + sTag + ';'
-    with open(filename, "r") as file:
-        for line in file:
-            if re.search(regex, line, re.IGNORECASE) is not None:
-                cLine = line.replace(regex, '')
-                datetime = cLine[:23]
-                sub_index = cLine.find('BODY')
-                tlgValues = cLine.replace(cLine[:sub_index + 5], "")
-                values = tlgValues.split('|')
-                values.insert(0, datetime)
-                tlgDict = dict(zip(elementList, values))
-                tValues.append(tlgDict)
-        file.close()
-
-    if len(tValues) > 0:
-        df = pd.DataFrame(tValues)
-        return df
-    else:
-        return 'No Data Found'
+        if len(tValues) > 0:
+            df = pd.DataFrame(tValues)
+            return df
+        else:
+            return 'No Data Found'
 
 
 def createApp():
@@ -143,8 +148,7 @@ def createApp():
 
     filename = xml_selector()
     st.sidebar.info("You Selected {}".format(filename))
-    tree = ET.parse(filename)
-    root = tree.getroot()
+    reader = Tinyxmlreader(filename)
 
     def file_selector(folder_path='./Data'):
         filenames = os.listdir(folder_path)
@@ -154,12 +158,12 @@ def createApp():
     log_filename = file_selector()
     st.sidebar.info("You Selected {}".format(log_filename))
 
-    telegramName = GetTlgList(root)
+    telegramName = reader.GetTlgList()
     option = st.selectbox(
         'Select the Telegram Name',
         telegramName)
 
-    df = maketlgvaluelist(root, option, log_filename)
+    df = reader.maketlgvaluelist(option, log_filename)
     if not type(df) is str:
         st.dataframe(df.style.highlight_max(axis=0))
         # Select Columns
@@ -251,10 +255,10 @@ def debug():
     for Debugging the software
     :return: void
     """
-    tree = ET.parse("Telcom_In.xml")
-    root = tree.getroot()
+    filename = "Telcom_In.xml"
+    reader = Tinyxmlreader(filename)
 
-    df = maketlgvaluelist(root, 'SCL205', 'SCL1_TlgReceiver.log')
+    df = reader.maketlgvaluelist('SCL205', 'SCL1_TlgReceiver.log')
     print(df)
 
 
