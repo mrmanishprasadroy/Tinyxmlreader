@@ -35,4 +35,4 @@ streamlit run TLGDefinitionReader.py
 ![Alt text](/Screenshot/main3.png?raw=true "Open Side Bar")
 ### Data Visualization uisng Plotly 
 ![Alt text](/Screenshot/main4.png?raw=true "Open Side Bar")
-![Alt text](/Screenshot/main4.png?raw=true "Open Side Bar")
+
