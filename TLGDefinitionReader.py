@@ -188,6 +188,9 @@ def createApp():
             if len(query) > 0:
                 new_df = df.query(query)
                 st.write(new_df)
+        # Dataframe describe
+        if st.checkbox("Describe"):
+            st.write(df.summ)
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
@@ -253,15 +256,14 @@ def createApp():
         st.write(df)
 
 
-def debug():
+def debug(xmlfilename, tlgname, logfilename):
     """
     for Debugging the software
     :return: void
     """
-    filename = "Telcom_In.xml"
-    reader = Tinyxmlreader(filename)
+    reader = Tinyxmlreader(xmlfilename)
 
-    df = reader.maketlgvaluelist('SCL205', 'SCL1_TlgReceiver.log')
+    df = reader.maketlgvaluelist(tlgname, logfilename)
     print(df)
 
 
