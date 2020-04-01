@@ -168,6 +168,10 @@ def createApp():
 
     df = reader.maketlgvaluelist(option, log_filename)
     if not type(df) is str:
+        st.write(str.format("No of Rows are {} and Coulmns are {}",df.shape[0],df.shape[1]))
+        if st.button("Download EXcel File"):
+            df.to_excel("output.xlsx")
+            st.info("output.xlsx file saved in root directory of app")
         st.dataframe(df.style.highlight_max(axis=0))
         # Select Columns
         if st.checkbox("Select Columns To Show"):
@@ -264,8 +268,9 @@ def debug(xmlfilename, tlgname, logfilename):
     reader = Tinyxmlreader(xmlfilename)
 
     df = reader.maketlgvaluelist(tlgname, logfilename)
-    print(df)
+    print(df.info())
 
 
 if __name__ == "__main__":
     createApp()
+    # debug('Telcom_In.xml','SCL205','SCL1_TlgReceiver.log')
