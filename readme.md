@@ -13,7 +13,7 @@ streamlit run TLGDefinitionReader.py
         
 ### Dependency PIP Install 
         # use Python > 3
-pip install streamlit
-pip install plotly 
-pip install pandas
-pip install matplotlib
+# pip install streamlit
+# pip install plotly 
+# pip install pandas
+# pip install matplotlib
