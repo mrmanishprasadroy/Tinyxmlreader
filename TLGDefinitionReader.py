@@ -44,6 +44,9 @@ import streamlit as st
 
 
 class Tinyxmlreader:
+    """
+    Class to decode tlg structure and passing of the log file
+    """
 
     def __init__(self, filename):
         self.filename = filename
@@ -232,8 +235,8 @@ def createApp():
                 layout = go.Layout(
                     xaxis={"title": "Date Time",
                            'rangeselector': {'buttons': list([
-                               {'count': 1, 'label': '1M', 'step': 'day', 'stepmode': 'backward'},
-                               {'count': 10, 'label': '6M', 'step': 'month', 'stepmode': 'backward'},
+                               {'count': 30, 'label': '30M', 'step': 'minute', 'stepmode': 'backward'},
+                               {'count': 1, 'label': '1H', 'step': 'hour', 'stepmode': 'backward'},
                                {'step': 'all'}
                            ])}, 'rangeslider': {'visible': True}, 'type': 'date'},
                     margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
