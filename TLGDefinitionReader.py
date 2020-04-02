@@ -74,31 +74,57 @@ class Tinyxmlreader:
         :return: telegram element list
         """
         elementList = []
+        dtype = dict()
         Xstring = "./telegram[@name ='" + tlgname + "']/record/element"
         for item in self.root.findall(Xstring):
             # iterate child elements of item
+            datatype = ""
+            for dt in item.findall("./primitive"):
+                satt = dt.attrib
+                datatype = satt.get('appType')
             att = item.attrib
             count = att.get('count')
             counter = int(count)
+            dt = datatype
             if counter > 1:
                 if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
                     elementList.append(att.get('name'))
+                    dtype[att.get('name')] = 'datetime64[s]'
+
                 else:
                     for idx in range(1, counter + 1):
                         elem = att.get('name') + "_" + str(idx)
                         elementList.append(elem)
+                        if dt == 'integer':
+                            dtype[att.get('name')] = 'int64'
+                        elif dt == 'number':
+                            dtype[att.get('name')] = 'float64'
+                        else:
+                            dtype[att.get('name')] = 'object'
             else:
                 elementList.append(att.get('name'))
+                dtype[att.get('name')] = dt
 
         if elementList.__contains__('Header'):
             elementList.remove('Header')
+            dtype.__delitem__('Header')
             elementList.insert(0, 'DateTime')
+            dtype['DateTime'] = 'datetime64[s]'
             elementList.insert(1, 'MessageLength')
+            dtype['MessageLength'] = 'int64'
             elementList.insert(2, 'MessageId')
+            dtype['MessageId'] = 'int64'
             elementList.insert(3, 'MessageCount')
+            dtype['MessageCount'] = 'int64'
             elementList.insert(4, 'UnitNo')
+            dtype['UnitNo'] = 'int64'
         else:
             elementList.insert(0, 'DateTime')
+            dtype['DateTime'] = 'datetime64[s]'
+
+       # df = pd.DataFrame(columns=elementList,dtype=dtype)
+       # print(df.info())
+
         return elementList
 
     def maketlgvaluelist(self, sTag, filename):
@@ -168,7 +194,7 @@ def createApp():
 
     df = reader.maketlgvaluelist(option, log_filename)
     if not type(df) is str:
-        st.write(str.format("No of Rows are {} and Coulmns are {}",df.shape[0],df.shape[1]))
+        st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
         if st.button("Download EXcel File"):
             df.to_excel("output.xlsx")
             st.info("output.xlsx file saved in root directory of app")
@@ -194,7 +220,7 @@ def createApp():
                 st.write(new_df)
         # Dataframe describe
         if st.checkbox("Describe"):
-            st.write(df.summ)
+            st.write(df.info())
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
@@ -272,5 +298,5 @@ def debug(xmlfilename, tlgname, logfilename):
 
 
 if __name__ == "__main__":
-    createApp()
-    # debug('Telcom_In.xml','SCL205','SCL1_TlgReceiver.log')
+    # createApp()
+    debug('Telcom_In.xml', 'SCL205', 'SCL1_TlgReceiver.log')
