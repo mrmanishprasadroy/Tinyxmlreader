@@ -6,7 +6,7 @@
 # use of Plotly
 # history:
 # 2020-03-31 vl   created
-#
+# 2020-04-02 V1.0.01 Added Data type for the Data frame
 # manish.roy@sms-group.com
 #
 # --------------------------------------------------------------------
@@ -41,6 +41,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import numpy as np
 
 
 class Tinyxmlreader:
@@ -73,8 +74,9 @@ class Tinyxmlreader:
         :param tlgname: telegram name
         :return: telegram element list
         """
+        returnList = []
         elementList = []
-        dtype = dict()
+        dtype = []
         Xstring = "./telegram[@name ='" + tlgname + "']/record/element"
         for item in self.root.findall(Xstring):
             # iterate child elements of item
@@ -89,43 +91,47 @@ class Tinyxmlreader:
             if counter > 1:
                 if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
                     elementList.append(att.get('name'))
-                    dtype[att.get('name')] = 'datetime64[s]'
+                    dtype.append(np.object)
 
                 else:
                     for idx in range(1, counter + 1):
                         elem = att.get('name') + "_" + str(idx)
                         elementList.append(elem)
                         if dt == 'integer':
-                            dtype[att.get('name')] = 'int64'
+                            dtype.append('int64')
                         elif dt == 'number':
-                            dtype[att.get('name')] = 'float64'
+                            dtype.append('float64')
                         else:
-                            dtype[att.get('name')] = 'object'
+                            dtype.append('object')
             else:
                 elementList.append(att.get('name'))
-                dtype[att.get('name')] = dt
+                if dt == 'integer':
+                    dtype.append('int64')
+                elif dt == 'number':
+                    dtype.append('float64')
+                else:
+                    dtype.append('object')
 
         if elementList.__contains__('Header'):
             elementList.remove('Header')
-            dtype.__delitem__('Header')
+            del dtype[0]
             elementList.insert(0, 'DateTime')
-            dtype['DateTime'] = 'datetime64[s]'
+            dtype.insert(0, 'datetime64[s]')
             elementList.insert(1, 'MessageLength')
-            dtype['MessageLength'] = 'int64'
+            dtype.insert(1, 'int64')
             elementList.insert(2, 'MessageId')
-            dtype['MessageId'] = 'int64'
+            dtype.insert(2, 'int64')
             elementList.insert(3, 'MessageCount')
-            dtype['MessageCount'] = 'int64'
+            dtype.insert(3, 'int64')
             elementList.insert(4, 'UnitNo')
-            dtype['UnitNo'] = 'int64'
+            dtype.insert(4, 'int64')
         else:
             elementList.insert(0, 'DateTime')
-            dtype['DateTime'] = 'datetime64[s]'
+            dtype.insert(0, 'datetime64[s]')
 
-       # df = pd.DataFrame(columns=elementList,dtype=dtype)
-       # print(df.info())
-
-        return elementList
+        returnList.append(elementList)
+        returnList.append(dtype)
+        return returnList
 
     def maketlgvaluelist(self, sTag, filename):
         """
@@ -135,7 +141,9 @@ class Tinyxmlreader:
         :return: Pandas Data frame
         """
         tValues = []
-        elementList = self.CreateTlgHeader(sTag)
+        returnList = self.CreateTlgHeader(sTag)
+        elementList = returnList[0]
+        dtypes = returnList[1]
         regex = 'TYPE;' + sTag + ';'
         with open(filename, "r") as file:
             for line in file:
@@ -152,6 +160,12 @@ class Tinyxmlreader:
 
         if len(tValues) > 0:
             df = pd.DataFrame(tValues)
+            convert_dict = dict(zip(elementList, dtypes))
+            try:
+                df = df.astype(convert_dict)
+            except ValueError:
+                # print(ValueError)
+                pass
             return df
         else:
             return 'No Data Found'
@@ -218,9 +232,6 @@ def createApp():
             if len(query) > 0:
                 new_df = df.query(query)
                 st.write(new_df)
-        # Dataframe describe
-        if st.checkbox("Describe"):
-            st.write(df.info())
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
@@ -298,5 +309,5 @@ def debug(xmlfilename, tlgname, logfilename):
 
 
 if __name__ == "__main__":
-    # createApp()
-    debug('Telcom_In.xml', 'SCL205', 'SCL1_TlgReceiver.log')
+    createApp()
+    # debug('Telcom_out.xml', 'LF_HEAT_STATUS', 'L2_L3_TlgSender_20-03-24_110141.log')
