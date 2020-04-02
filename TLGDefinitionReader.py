@@ -192,9 +192,6 @@ def createApp():
             if len(query) > 0:
                 new_df = df.query(query)
                 st.write(new_df)
-        # Dataframe describe
-        if st.checkbox("Describe"):
-            st.write(df.summ)
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
