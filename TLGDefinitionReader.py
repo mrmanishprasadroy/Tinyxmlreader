@@ -206,7 +206,11 @@ def createApp():
         'Select the Telegram Name',
         telegramName)
 
-    df = reader.maketlgvaluelist(option, log_filename)
+    @st.cache
+    def clean_data_source(option, log_filename):
+        return reader.maketlgvaluelist(option, log_filename)
+
+    df = clean_data_source(option, log_filename)
     if not type(df) is str:
         st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
         if st.button("Download EXcel File"):
@@ -229,9 +233,12 @@ def createApp():
             '''
             st.markdown(hint, unsafe_allow_html=True)
             query = st.text_input('Write query in String style', value="")
-            if len(query) > 0:
-                new_df = df.query(query)
-                st.write(new_df)
+            try:
+                if len(query) > 0:
+                    new_df = df.query(query)
+                    st.write(new_df)
+            except ValueError:
+                st.error('failed to querry the dataset, check query condition ')
         # Data Visualization for the datafile
         st.subheader("Data Visualization")
 
