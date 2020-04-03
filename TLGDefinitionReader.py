@@ -213,7 +213,7 @@ def createApp():
     df = clean_data_source(option, log_filename)
     if not type(df) is str:
         st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
-        if st.button("Download EXcel File"):
+        if st.button("Download Excel File"):
             df.to_excel("output.xlsx")
             st.info("output.xlsx file saved in root directory of app")
         st.dataframe(df.style.highlight_max(axis=0))
