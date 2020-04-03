@@ -68,7 +68,7 @@ class Tinyxmlreader:
             TlgName.append(att.get('name'))
         return TlgName
 
-    def CreateTlgHeader(self, tlgname):
+    def CreateTlgHeader(self, tlgname: str) -> list:
         """
         Extract the Record or Element of the telegram from the XML file
         :param tlgname: telegram name
@@ -133,7 +133,7 @@ class Tinyxmlreader:
         returnList.append(dtype)
         return returnList
 
-    def maketlgvaluelist(self, sTag, filename):
+    def maketlgvaluelist(self, sTag: str  , filename: str) -> pd.DataFrame:
         """
         File Processing for extracting the values from Loag file
         :param sTag: Telegram Name
