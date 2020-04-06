@@ -10,28 +10,6 @@
 # manish.roy@sms-group.com
 #
 # --------------------------------------------------------------------
-"""
-Copyright (c) 2020 manish.roy@sms-group.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-"""
 
 import os
 import re
@@ -44,7 +22,7 @@ import streamlit as st
 import numpy as np
 
 
-class Tinyxmlreader:
+class TinyXmlReader:
     """
     Class to decode tlg structure and passing of the log file
     """
@@ -55,95 +33,95 @@ class Tinyxmlreader:
         self.root = self.tree.getroot()
 
     def __repr__(self):
-        return f'Tinyxmlreader({self.root!r})'
+        return f'TinyXmlReader({self.root!r})'
 
-    def GetTlgList(self):
+    def get_tlg_list(self):
         """
         Extract the Telegrams from the XML file
         :return: telegram list
         """
-        TlgName = []
+        tlg_name = []
         for c in self.root.findall('telegram'):
             att = c.attrib
-            TlgName.append(att.get('name'))
-        return TlgName
+            tlg_name.append(att.get('name'))
+        return tlg_name
 
-    def CreateTlgHeader(self, tlgname: str) -> list:
+    def CreateTlgHeader(self, tlg_name: str) -> list:
         """
         Extract the Record or Element of the telegram from the XML file
-        :param tlgname: telegram name
+        :param tlg_name: telegram name
         :return: telegram element list
         """
-        returnList = []
-        elementList = []
-        dtype = []
-        Xstring = "./telegram[@name ='" + tlgname + "']/record/element"
-        for item in self.root.findall(Xstring):
+        return_list = []
+        element_list = []
+        d_type = []
+        x_string = "./telegram[@name ='" + tlg_name + "']/record/element"
+        for item in self.root.findall(x_string):
             # iterate child elements of item
-            datatype = ""
+            data_type = ""
             for dt in item.findall("./primitive"):
-                satt = dt.attrib
-                datatype = satt.get('appType')
+                sub_att = dt.attrib
+                data_type = sub_att.get('appType')
             att = item.attrib
             count = att.get('count')
             counter = int(count)
-            dt = datatype
+            dt = data_type
             if counter > 1:
                 if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
-                    elementList.append(att.get('name'))
-                    dtype.append(np.object)
+                    element_list.append(att.get('name'))
+                    d_type.append(np.object)
 
                 else:
                     for idx in range(1, counter + 1):
                         elem = att.get('name') + "_" + str(idx)
-                        elementList.append(elem)
+                        element_list.append(elem)
                         if dt == 'integer':
-                            dtype.append('int64')
+                            d_type.append('int64')
                         elif dt == 'number':
-                            dtype.append('float64')
+                            d_type.append('float64')
                         else:
-                            dtype.append('object')
+                            d_type.append('object')
             else:
-                elementList.append(att.get('name'))
+                element_list.append(att.get('name'))
                 if dt == 'integer':
-                    dtype.append('int64')
+                    d_type.append('int64')
                 elif dt == 'number':
-                    dtype.append('float64')
+                    d_type.append('float64')
                 else:
-                    dtype.append('object')
+                    d_type.append('object')
 
-        if elementList.__contains__('Header'):
-            elementList.remove('Header')
-            del dtype[0]
-            elementList.insert(0, 'DateTime')
-            dtype.insert(0, 'datetime64[s]')
-            elementList.insert(1, 'MessageLength')
-            dtype.insert(1, 'int64')
-            elementList.insert(2, 'MessageId')
-            dtype.insert(2, 'int64')
-            elementList.insert(3, 'MessageCount')
-            dtype.insert(3, 'int64')
-            elementList.insert(4, 'UnitNo')
-            dtype.insert(4, 'int64')
+        if element_list.__contains__('Header'):
+            element_list.remove('Header')
+            del d_type[0]
+            element_list.insert(0, 'DateTime')
+            d_type.insert(0, 'datetime64[s]')
+            element_list.insert(1, 'MessageLength')
+            d_type.insert(1, 'int64')
+            element_list.insert(2, 'MessageId')
+            d_type.insert(2, 'int64')
+            element_list.insert(3, 'MessageCount')
+            d_type.insert(3, 'int64')
+            element_list.insert(4, 'UnitNo')
+            d_type.insert(4, 'int64')
         else:
-            elementList.insert(0, 'DateTime')
-            dtype.insert(0, 'datetime64[s]')
+            element_list.insert(0, 'DateTime')
+            d_type.insert(0, 'datetime64[s]')
 
-        returnList.append(elementList)
-        returnList.append(dtype)
-        return returnList
+        return_list.append(element_list)
+        return_list.append(d_type)
+        return return_list
 
-    def maketlgvaluelist(self, sTag: str  , filename: str) -> pd.DataFrame:
+    def make_tlg_value_list(self, sTag: str, filename: str) -> pd.DataFrame:
         """
         File Processing for extracting the values from Loag file
         :param sTag: Telegram Name
         :param filename: Logfile name for analysis
         :return: Pandas Data frame
         """
-        tValues = []
-        returnList = self.CreateTlgHeader(sTag)
-        elementList = returnList[0]
-        dtypes = returnList[1]
+        t_values = []
+        return_list = self.CreateTlgHeader(sTag)
+        element_list = return_list[0]
+        d_types = return_list[1]
         regex = 'TYPE;' + sTag + ';'
         with open(filename, "r") as file:
             for line in file:
@@ -154,26 +132,23 @@ class Tinyxmlreader:
                     tlgValues = cLine.replace(cLine[:sub_index + 5], "")
                     values = tlgValues.split('|')
                     values.insert(0, datetime)
-                    tlgDict = dict(zip(elementList, values))
-                    tValues.append(tlgDict)
+                    tlg_dict = dict(zip(element_list, values))
+                    t_values.append(tlg_dict)
             file.close()
 
-        if len(tValues) > 0:
-            df = pd.DataFrame(tValues)
-            convert_dict = dict(zip(elementList, dtypes))
+        if len(t_values) > 0:
+            df = pd.DataFrame(t_values)
+            convert_dict = dict(zip(element_list, d_types))
             try:
                 df = df.astype(convert_dict)
             except ValueError:
-                # print(ValueError)
                 pass
             return df
-        else:
-            return 'No Data Found'
 
 
 def createApp():
     """
-        Streamlit App componet start form here
+        Streamlit App Component start form here
         url: https://docs.streamlit.io/
     """
     html_temp = '''
@@ -185,13 +160,13 @@ def createApp():
     st.markdown(html_temp, unsafe_allow_html=True)
 
     def xml_selector(folder_path='./xml'):
-        filenames = os.listdir(folder_path)
-        selected_filename = st.sidebar.selectbox("Select xml file", filenames)
+        filename = os.listdir(folder_path)
+        selected_filename = st.sidebar.selectbox("Select xml file", filename)
         return os.path.join(folder_path, selected_filename)
 
     filename = xml_selector()
     st.sidebar.info("You Selected {}".format(filename))
-    reader = Tinyxmlreader(filename)
+    reader = TinyXmlReader(filename)
 
     def file_selector(folder_path='./Data'):
         filenames = os.listdir(folder_path)
@@ -201,17 +176,17 @@ def createApp():
     log_filename = file_selector()
     st.sidebar.info("You Selected {}".format(log_filename))
 
-    telegramName = reader.GetTlgList()
+    telegramName = reader.get_tlg_list()
     option = st.selectbox(
         'Select the Telegram Name',
         telegramName)
 
     @st.cache
-    def clean_data_source(option, log_filename):
-        return reader.maketlgvaluelist(option, log_filename)
+    def clean_data_source(tag, log_file_name):
+        return reader.make_tlg_value_list(tag, log_file_name)
 
     df = clean_data_source(option, log_filename)
-    if not type(df) is str:
+    if isinstance(df, pd.DataFrame):
         st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
         if st.button("Download Excel File"):
             df.to_excel("output.xlsx")
@@ -246,7 +221,6 @@ def createApp():
 
         st.subheader("Customizable Plot")
         all_columns_names = df.columns.tolist()
-        # type_of_plot = st.selectbox("Select Type of Plot", ["MatPlot", "Plotly"])
         selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
         type_of_plot = "Plotly"
         if st.button("Generate Plot"):
@@ -304,14 +278,14 @@ def createApp():
         st.write(df)
 
 
-def debug(xmlfilename, tlgname, logfilename):
+def debug(xml_file_name, tlg_name, log_filename):
     """
     for Debugging the software
     :return: void
     """
-    reader = Tinyxmlreader(xmlfilename)
+    reader = TinyXmlReader(xml_file_name)
 
-    df = reader.maketlgvaluelist(tlgname, logfilename)
+    df = reader.make_tlg_value_list(tlg_name, log_filename)
     print(df.info())
 
 
