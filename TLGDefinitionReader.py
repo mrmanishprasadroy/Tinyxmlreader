@@ -160,8 +160,8 @@ def createApp():
     st.markdown(html_temp, unsafe_allow_html=True)
 
     def xml_selector(folder_path='./xml'):
-        filename = os.listdir(folder_path)
-        selected_filename = st.sidebar.selectbox("Select xml file", filename)
+        file_name = os.listdir(folder_path)
+        selected_filename = st.sidebar.selectbox("Select xml file", file_name)
         return os.path.join(folder_path, selected_filename)
 
     filename = xml_selector()
