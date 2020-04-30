@@ -1,2 +1,8 @@
 ﻿Data
 xml
+zip
+*.swp
+*.xlsx
+*.zip
+*.log
+*.xml
