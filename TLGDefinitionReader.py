@@ -14,7 +14,7 @@
 import os
 import re
 import xml.etree.ElementTree as ET
-
+from datetime import date
 import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
@@ -189,9 +189,9 @@ def createApp():
     if isinstance(df, pd.DataFrame):
         st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
         if st.button("Download Excel File"):
-            df.to_excel("output.xlsx")
-            st.info("output.xlsx file saved in root directory of app")
-        st.dataframe(df.style.highlight_max(axis=0))
+            df.to_excel("{}_{}.xlsx".format(option, date.today()))
+            st.info("{}_{}.xlsx file saved in root directory of app".format(option, date.today()))
+        st.dataframe(df.style.highlight_max(axis=1))
         # Select Columns
         if st.checkbox("Select Columns To Show"):
             all_columns = df.columns.tolist()
