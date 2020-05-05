@@ -20,6 +20,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
+import configparser
 
 
 class TinyXmlReader:
@@ -221,10 +222,12 @@ def createApp():
 
         st.subheader("Customizable Plot")
         all_columns_names = df.columns.tolist()
-        selected_columns_names = st.multiselect("Select Columns To Plot", all_columns_names)
+        selected_columns_names = st.multiselect(
+            "Select Columns To Plot", all_columns_names)
         type_of_plot = "Plotly"
         if st.button("Generate Plot"):
-            st.success("Generating Customizable Plot of {} for {}".format(type_of_plot, selected_columns_names))
+            st.success("Generating Customizable Plot of {} for {}".format(
+                type_of_plot, selected_columns_names))
             if type_of_plot == 'MatPlot':
                 # create plot
                 bar_width = 0.35
@@ -260,8 +263,10 @@ def createApp():
                 layout = go.Layout(
                     xaxis={"title": "Date Time",
                            'rangeselector': {'buttons': list([
-                               {'count': 30, 'label': '30M', 'step': 'minute', 'stepmode': 'backward'},
-                               {'count': 1, 'label': '1H', 'step': 'hour', 'stepmode': 'backward'},
+                               {'count': 30, 'label': '30M',
+                                   'step': 'minute', 'stepmode': 'backward'},
+                               {'count': 1, 'label': '1H', 'step': 'hour',
+                                   'stepmode': 'backward'},
                                {'step': 'all'}
                            ])}, 'rangeslider': {'visible': True}, 'type': 'date'},
                     margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
