@@ -22,6 +22,9 @@ import streamlit as st
 import numpy as np
 import configparser
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 
 class TinyXmlReader:
     """
@@ -34,7 +37,7 @@ class TinyXmlReader:
         self.root = self.tree.getroot()
 
     def __repr__(self):
-        return f'TinyXmlReader({self.root!r})'
+        return 'TinyXmlReader({self.root!r})'
 
     def get_tlg_list(self):
         """
@@ -159,8 +162,9 @@ def createApp():
         </div>
     '''
     st.markdown(html_temp, unsafe_allow_html=True)
+    xml_dir = config.get('PATHS', 'xml_path')
 
-    def xml_selector(folder_path='./xml'):
+    def xml_selector(folder_path=xml_dir):
         file_name = os.listdir(folder_path)
         selected_filename = st.sidebar.selectbox("Select xml file", file_name)
         return os.path.join(folder_path, selected_filename)
@@ -168,8 +172,9 @@ def createApp():
     filename = xml_selector()
     st.sidebar.info("You Selected {}".format(filename))
     reader = TinyXmlReader(filename)
+    data_dir = config.get('PATHS', 'data_path')
 
-    def file_selector(folder_path='./Data'):
+    def file_selector(folder_path=data_dir):
         filenames = os.listdir(folder_path)
         selected_filename = st.sidebar.selectbox("Select log file", filenames)
         return os.path.join(folder_path, selected_filename)
@@ -264,9 +269,9 @@ def createApp():
                     xaxis={"title": "Date Time",
                            'rangeselector': {'buttons': list([
                                {'count': 30, 'label': '30M',
-                                   'step': 'minute', 'stepmode': 'backward'},
+                                'step': 'minute', 'stepmode': 'backward'},
                                {'count': 1, 'label': '1H', 'step': 'hour',
-                                   'stepmode': 'backward'},
+                                'stepmode': 'backward'},
                                {'step': 'all'}
                            ])}, 'rangeslider': {'visible': True}, 'type': 'date'},
                     margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
@@ -283,17 +288,23 @@ def createApp():
         st.write(df)
 
 
-def debug(xml_file_name, tlg_name, log_filename):
+def debug():
     """
     for Debugging the software
     :return: void
     """
-    reader = TinyXmlReader(xml_file_name)
+    xml_file = config.get('DEBUG', 'xml_filename')
+    log_filename = config.get('DEBUG', 'filename')
+    tlg_name = config.get('DEBUG', 'tlg_name')
+    reader = TinyXmlReader(xml_file)
 
     df = reader.make_tlg_value_list(tlg_name, log_filename)
     print(df.info())
 
 
 if __name__ == "__main__":
-    createApp()
+    if config['DEFAULT'].getboolean('debug'):
+        debug()
+    else:
+        createApp()
     # debug('Telcom_out.xml', 'LF_HEAT_STATUS', 'L2_L3_TlgSender_20-03-24_110141.log')
