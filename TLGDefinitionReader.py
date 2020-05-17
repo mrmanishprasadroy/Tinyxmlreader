@@ -7,6 +7,7 @@
 # history:
 # 2020-03-31 vl   created
 # 2020-04-02 V1.0.01 Added Data type for the Data frame
+# 2020-05-17 v1.1.0  Added Decoding of structure in tlg definition
 # manish.roy@sms-group.com
 #
 # --------------------------------------------------------------------
@@ -50,16 +51,15 @@ class TinyXmlReader:
             tlg_name.append(att.get('name'))
         return tlg_name
 
-    def CreateTlgHeader(self, tlg_name: str) -> list:
+    def read_sub_list(self, x_string: str) -> list:
         """
-        Extract the Record or Element of the telegram from the XML file
-        :param tlg_name: telegram name
-        :return: telegram element list
+              Extract the Record or Element of the telegram from the XML file
+              :param x_string: element records search string
+              :return: record element list
         """
-        return_list = []
-        element_list = []
-        d_type = []
-        x_string = "./telegram[@name ='" + tlg_name + "']/record/element"
+        return_sub_list = []
+        element_sub_list = []
+        dsub_type = []
         for item in self.root.findall(x_string):
             # iterate child elements of item
             data_type = ""
@@ -72,13 +72,73 @@ class TinyXmlReader:
             dt = data_type
             if counter > 1:
                 if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
+                    element_sub_list.append(att.get('name'))
+                    dsub_type.append(np.object)
+
+                else:
+                    for idx in range(1, counter + 1):
+                        elem = att.get('name') + "_" + str(idx)
+                        element_sub_list.append(elem)
+                        if dt == 'integer':
+                            dsub_type.append('int64')
+                        elif dt == 'number':
+                            dsub_type.append('float64')
+                        else:
+                            dsub_type.append('object')
+            else:
+                element_sub_list.append(att.get('name'))
+                if dt == 'integer':
+                    dsub_type.append('int64')
+                elif dt == 'number':
+                    dsub_type.append('float64')
+                else:
+                    dsub_type.append('object')
+
+        return_sub_list.append(element_sub_list)
+        return_sub_list.append(dsub_type)
+        return return_sub_list
+
+    def CreateTlgHeader(self, tlg_name: str) -> list:
+        """
+            Extract the Record or Element of the telegram from the XML file
+            :param tlg_name: telegram name
+            :return: telegram element list
+        """
+        return_list = []
+        element_list = []
+        d_type = []
+        sub_element_list = []
+        x_string = "./telegram[@name ='" + tlg_name + "']/record/element"
+        for item in self.root.findall(x_string):
+            # iterate child elements of item
+            data_type = ""
+            for dt in item.findall("./primitive"):
+                sub_att = dt.attrib
+                data_type = sub_att.get('appType')
+            att = item.attrib
+            count = att.get('count')
+            kind = att.get('kind')
+            counter = int(count)
+            dt = data_type
+            if not kind:
+                x_string = x_string + '/record/element'
+                sub_element_list.append(self.read_sub_list(x_string))
+            if counter > 1:
+                if re.search(r'\bTime\b', att.get('name'), re.IGNORECASE):
                     element_list.append(att.get('name'))
                     d_type.append(np.object)
 
                 else:
                     for idx in range(1, counter + 1):
                         elem = att.get('name') + "_" + str(idx)
-                        element_list.append(elem)
+                        if not kind:
+                            rec_list = sub_element_list[0]
+                            for rec_elem in rec_list[0]:
+                                element_list.append(rec_elem + "_" + str(idx))
+                            for rec_dbtype in rec_list[1]:
+                                d_type.append(rec_dbtype)
+                        else:
+                            element_list.append(elem)
                         if dt == 'integer':
                             d_type.append('int64')
                         elif dt == 'number':
