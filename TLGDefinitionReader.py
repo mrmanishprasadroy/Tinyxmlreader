@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-import  base64
+import base64
 from log_parser import TinyXmlReader
 
 config = configparser.ConfigParser()
@@ -48,7 +48,6 @@ def createApp():
             filename = "{}_{}".format(option, date.today())
             href = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download CSV File</a>'
             st.markdown(href, unsafe_allow_html=True)
-
 
             st.dataframe(df.style.highlight_max(axis=1))
             # Select Columns
