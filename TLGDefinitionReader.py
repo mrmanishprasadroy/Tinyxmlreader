@@ -41,7 +41,7 @@ def createApp():
 
         df = clean_data_source(option, log_bytes)
         if isinstance(df, pd.DataFrame):
-            st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
+            st.write(str.format("No of Rows are {} and Columns are {}", df.shape[0], df.shape[1]))
             # When no file name is given, pandas returns the CSV as a string, nice.
             csv = df.to_csv(index=False)
             b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
