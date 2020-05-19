@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-
+import  base64
 from log_parser import TinyXmlReader
 
 config = configparser.ConfigParser()
@@ -42,9 +42,14 @@ def createApp():
         df = clean_data_source(option, log_bytes)
         if isinstance(df, pd.DataFrame):
             st.write(str.format("No of Rows are {} and Coulmns are {}", df.shape[0], df.shape[1]))
-            if st.button("Download Excel File"):
-                df.to_excel("{}_{}.xlsx".format(option, date.today()))
-                st.info("{}_{}.xlsx file saved in root directory of app".format(option, date.today()))
+            # When no file name is given, pandas returns the CSV as a string, nice.
+            csv = df.to_csv(index=False)
+            b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
+            filename = "{}_{}".format(option, date.today())
+            href = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download CSV File</a>'
+            st.markdown(href, unsafe_allow_html=True)
+
+
             st.dataframe(df.style.highlight_max(axis=1))
             # Select Columns
             if st.checkbox("Select Columns To Show"):
